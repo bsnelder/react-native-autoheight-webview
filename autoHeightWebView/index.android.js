@@ -219,12 +219,15 @@ export default class AutoHeightWebView extends PureComponent {
     if (!e.nativeEvent) {
       return;
     }
+
     let data = {};
+    const { onMessage } = this.props;
+
     // Sometimes the message is invalid JSON, so we ignore that case
     try {
       data = JSON.parse(isBelowKitKat ? e.nativeEvent.message : e.nativeEvent.data);
     } catch (error) {
-      console.error(error);
+      onMessage && onMessage(e);
       return;
     }
     const { height, width } = data;
@@ -237,7 +240,7 @@ export default class AutoHeightWebView extends PureComponent {
         width
       });
     }
-    const { onMessage } = this.props;
+
     onMessage && onMessage(e);
   };
 
@@ -330,11 +333,11 @@ const commonScript = `
 const getBaseScript = isBelowKitKat
   ? function(style) {
       return `
-    ; 
+    ;
     ${commonScript}
     var width = ${getWidth(style)};
     function updateSize() {
-      var size = getSize(document.body.firstChild); 
+      var size = getSize(document.body.firstChild);
       height = size.height;
       width = size.width;
       AutoHeightWebView.send(JSON.stringify({ width, height }));
@@ -347,11 +350,11 @@ const getBaseScript = isBelowKitKat
     }
   : function(style) {
       return `
-    ; 
+    ;
     ${commonScript}
     var width = ${getWidth(style)};
     function updateSize() {
-      var size = getSize(document.body.firstChild); 
+      var size = getSize(document.body.firstChild);
       height = size.height;
       width = size.width;
       window.postMessage(JSON.stringify({ width, height }), '*');
