@@ -2,7 +2,8 @@
 
 import React, { PureComponent } from 'react';
 
-import { Animated, StyleSheet, ViewPropTypes, WebView } from 'react-native';
+import { Animated, StyleSheet, ViewPropTypes } from 'react-native';
+import { WebView} from 'react-native-webview';
 
 import PropTypes from 'prop-types';
 
@@ -23,7 +24,7 @@ export default class AutoHeightWebView extends PureComponent {
     hasIframe: PropTypes.bool,
     onNavigationStateChange: PropTypes.func,
     onMessage: PropTypes.func,
-    source: WebView.propTypes.source,
+    source: PropTypes.any,
     customScript: PropTypes.string,
     customStyle: PropTypes.string,
     enableAnimation: PropTypes.bool,
@@ -151,6 +152,7 @@ export default class AutoHeightWebView extends PureComponent {
       scrollEnabled
     } = this.props;
     const { source, script } = this.getUpdatedState(this.props, getBaseScript, getIframeBaseScript);
+
     return (
       <Animated.View
         style={[
@@ -174,7 +176,6 @@ export default class AutoHeightWebView extends PureComponent {
           onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
           style={styles.webView}
           scrollEnabled={!!scrollEnabled}
-          scalesPageToFit={scalesPageToFit}
           injectedJavaScript={script}
           source={source}
           onNavigationStateChange={this.handleNavigationStateChange}
@@ -205,7 +206,7 @@ function getBaseScript(style) {
     ;
     ${getCurrentSize}
     (function () {
-      if (!document.getElementById("rnahw-wrapper")) { 
+      if (!document.getElementById("rnahw-wrapper")) {
           var height = 0;
           var width = ${getWidth(style)};
           var wrapper = document.createElement('div');
@@ -219,7 +220,13 @@ function getBaseScript(style) {
                var size = getSize(wrapper);
                height = size.height;
                width = size.width;
-               document.title = height.toString() + ',' + width.toString();
+               var oldTitle = document.title;
+               var newTitle = height.toString() + ',' + width.toString();
+
+               if (oldTitle !== newTitle) {
+                document.title = newTitle;
+                document.location = document.location + '#webviewRefresh';
+               }
             }
           }
         ${commonScript}
